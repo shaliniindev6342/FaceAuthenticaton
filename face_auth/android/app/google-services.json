@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "968154150865",
+    "project_id": "face-auth-1a0ea",
+    "storage_bucket": "face-auth-1a0ea.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:968154150865:android:4fce49c1b530309d7bd2f0",
+        "android_client_info": {
+          "package_name": "com.example.face_auth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdB3pfMobqmYrKxYk88mx8cM4xF2Fajt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
