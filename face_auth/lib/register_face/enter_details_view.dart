@@ -2,11 +2,10 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_auth/common/utils/custom_snackbar.dart';
 import 'package:face_auth/common/utils/custom_text_field.dart';
-import 'package:face_auth/common/views/custom_button.dart';
+import 'package:face_auth/common/utils/number_textfild.dart';
 import 'package:face_auth/constants/theme.dart';
 import 'package:face_auth/model/user_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 class EnterDetailsView extends StatefulWidget {
@@ -28,6 +27,8 @@ class _EnterDetailsViewState extends State<EnterDetailsView> {
   bool isRegistering = false;
   final _formFieldKey = GlobalKey<FormFieldState>();
   final TextEditingController _mpinController = TextEditingController();
+  DateTime date = DateTime.now();
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +59,7 @@ class _EnterDetailsViewState extends State<EnterDetailsView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              CustomTextField(
+              CustomTextFieldn(
                 formFieldKey: _formFieldKey,
                 controller: _mpinController,
                 hintText: "Enter M-pin",
@@ -142,23 +143,21 @@ class _EnterDetailsViewState extends State<EnterDetailsView> {
                 UserModel user = UserModel(
                   id: userId,
                   name: widget.name,
-                  mPin:
-                      int.tryParse(_mpinController.text) ?? 0, // Convert to int
+                  mPin: int.tryParse(_mpinController.text) ?? 0, 
                   image: widget.image,
-                  registeredOn: DateTime.now().day,
+                  registeredOn: date.day,
                   faceFeatures: widget.faceFeatures,
                 );
 
                 await FirebaseFirestore.instance
                     .collection("users")
                     .add(user.toJson());
-
                 CustomSnackBar.successSnackBar("Registration Success!");
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } catch (e) {
                 log("Registration Error===============================: $e");
                 CustomSnackBar.errorSnackBar("Registration Failed! Try Again.");
-                Navigator.of(context).pop(); // Pop the loading dialog
+                Navigator.of(context).pop(); 
               }
             }
           },

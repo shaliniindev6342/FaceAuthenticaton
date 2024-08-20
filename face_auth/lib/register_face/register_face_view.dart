@@ -12,8 +12,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class RegisterFaceView extends StatefulWidget {
   final String name;
-  const RegisterFaceView({
-    Key? key, required this.name}) : super(key: key);
+  const RegisterFaceView({Key? key, required this.name}) : super(key: key);
 
   @override
   State<RegisterFaceView> createState() => _RegisterFaceViewState();
@@ -37,6 +36,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('face_images----${_image}');
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -73,6 +73,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+
                   CameraView(
                     onImage: (image) {
                       setState(() {
@@ -89,8 +90,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
                           ),
                         ),
                       );
-                      _faceFeatures =
-                          await extractFaceFeatures(inputImage, _faceDetector);
+                      _faceFeatures = await extractFaceFeatures(inputImage, _faceDetector);
                       setState(() {});
                       if (mounted) Navigator.of(context).pop();
                     },
@@ -104,7 +104,7 @@ class _RegisterFaceViewState extends State<RegisterFaceView> {
                           MaterialPageRoute(
                             builder: (context) => EnterDetailsView(
                               image: _image!,
-                              faceFeatures: _faceFeatures!, 
+                              faceFeatures: _faceFeatures!,
                               name: widget.name,
                             ),
                           ),

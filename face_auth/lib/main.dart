@@ -4,6 +4,7 @@ import 'package:face_auth/common/utils/custom_snackbar.dart';
 import 'package:face_auth/common/utils/extensions/size_extension.dart';
 import 'package:face_auth/common/utils/screen_size_util.dart';
 import 'package:face_auth/common/views/login_screen.dart';
+import 'package:face_auth/common/views/new_login_screen.dart';
 import 'package:face_auth/constants/theme.dart';
 import 'package:face_auth/register_face/enter_password_view.dart';
 import 'package:flutter/material.dart';
@@ -83,7 +84,6 @@ class Home extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-           
             SizedBox(height: 0.07.sh),
             CustomButton(
               text: "Register User",

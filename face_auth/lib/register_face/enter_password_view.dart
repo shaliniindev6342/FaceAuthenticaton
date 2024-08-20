@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart'; // Added missing FirebaseAuth
 import 'package:face_auth/common/utils/custom_number_textfield.dart';
 import 'package:face_auth/common/utils/custom_text_field.dart';
 import 'package:face_auth/common/views/custom_button.dart';
-import 'package:face_auth/common/utils/custom_snackbar.dart';
 import 'package:face_auth/common/views/otp_screen.dart';
 import 'package:face_auth/constants/theme.dart';
 import 'package:face_auth/model/password_model.dart';
@@ -68,7 +67,6 @@ class _EnterPasswordViewState extends State<EnterPasswordView> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(

@@ -1,13 +1,12 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:face_auth/blink/image_compression_service.dart';
 import 'package:face_auth/common/utils/extensions/size_extension.dart';
 import 'package:face_auth/constants/theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_face_api/face_api.dart' as Regula;
+import 'package:live_photo_detector/m7_livelyness_detection.dart';
 
 class CameraView extends StatefulWidget {
   const CameraView({
@@ -24,82 +23,69 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
-  File? _image;
-  Uint8List? _imageBytes;
-  final ImagePicker _imagePicker = ImagePicker();
+  Uint8List? _imageBytes; 
+
+  final List<M7LivelynessStepItem> _verificationSteps = [
+    M7LivelynessStepItem(
+      step: M7LivelynessStep.blink,
+      title: "Blink",
+      isCompleted: false,
+      // thresholdToCheck: 0.0,
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _startFaceCapture(); // Automatically start face capture
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startLivenessDetection();
+    });
   }
 
-  Future<void> _startFaceCapture() async {
+  Future<void> _startLivenessDetection() async {
     try {
-      var result = await Regula.FaceSDK.presentFaceCaptureActivity();
-      if (result != null) {
-        final response =
-            Regula.FaceCaptureResponse.fromJson(json.decode(result));
-        final base64Image = response?.image?.bitmap?.replaceAll("\n", "") ?? '';
-        final imageBytes = base64Decode(base64Image);
+      final String? response =
+          await M7LivelynessDetection.instance.detectLivelyness(
+        context,
+        config: M7DetectionConfig(
+          steps: _verificationSteps,
+          startWithInfoScreen: false,
+          maxSecToDetect: 30,
+          allowAfterMaxSec: false,
+          captureButtonColor: Colors.red,
+        ),
+      );
 
-        // Log the base64 string and the image size
-        print('Captured Face Image Size: ${imageBytes.lengthInBytes} bytes');
-        print("Base64 Image: $base64Image");
+      if (response != null) {
+        File capturedImageFile = File(response);
+        Uint8List imageBytes = capturedImageFile.readAsBytesSync();
 
-        setState(() {
-          _imageBytes = imageBytes;
-        });
+        Uint8List? compressedImage = await compressImage(imageBytes);
 
-        widget.onImage(imageBytes);
+        if (compressedImage != null) {
+          setState(() {
+            _imageBytes = compressedImage;
+          });
 
-        // Save the image to a temporary file and get the path
-        final tempDir = await Directory.systemTemp.createTemp();
-        final imagePath = '${tempDir.path}/captured_face.png';
-        File(imagePath).writeAsBytesSync(imageBytes);
+          widget.onImage(_imageBytes!);
 
-        // Now use the correct path for InputImage
-        InputImage inputImage = InputImage.fromFilePath(imagePath);
-        widget.onInputImage(inputImage);
+          InputImage inputImage =
+              InputImage.fromFilePath(capturedImageFile.path);
+          widget.onInputImage(inputImage);
+        }
       }
     } catch (e) {
-      log('Face capture initialization failed: $e');
+      print("Error during liveness detection: $e");
     }
-  }
-
-  Future<void> _getImage() async {
-    setState(() {
-      _image = null;
-    });
-    final pickedFile = await _imagePicker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 400,
-      maxHeight: 400,
-    );
-    if (pickedFile != null) {
-      _setPickedFile(pickedFile);
-    }
-  }
-
-  Future<void> _setPickedFile(XFile? pickedFile) async {
-    final path = pickedFile?.path;
-    if (path == null) {
-      return;
-    }
-    setState(() {
-      _image = File(path);
-    });
-
-    Uint8List imageBytes = _image!.readAsBytesSync();
-    widget.onImage(imageBytes);
-
-    InputImage inputImage = InputImage.fromFilePath(path);
-    widget.onInputImage(inputImage);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print("Captured Image Bytes: $_imageBytes");
+    }
     return Column(
+      // mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -112,48 +98,24 @@ class _CameraViewState extends State<CameraView> {
           ],
         ),
         SizedBox(height: 0.025.sh),
-        _imageBytes != null
-            ? CircleAvatar(
-                radius: 0.15.sh,
-                backgroundColor: const Color(0xffD9D9D9),
-                backgroundImage:
-                    MemoryImage(_imageBytes!), // Display the captured image
-              )
-            : CircleAvatar(
-                radius: 0.15.sh,
-                backgroundColor: const Color(0xffD9D9D9),
-                child: Icon(
-                  Icons.camera_alt,
-                  size: 0.09.sh,
-                  color: const Color(0xff2E2E2E),
-                ),
-              ),
-        // GestureDetector(
-        //   onTap: _getImage,
-        //   child: Container(
-        //     width: 60,
-        //     height: 60,
-        //     margin: const EdgeInsets.only(top: 44, bottom: 20),
-        //     decoration: const BoxDecoration(
-        //       gradient: RadialGradient(
-        //         stops: [0.4, 0.65, 1],
-        //         colors: [
-        //           Color(0xffD9D9D9),
-        //           primaryWhite,
-        //           Color(0xffD9D9D9),
-        //         ],
-        //       ),
-        //       shape: BoxShape.circle,
-        //     ),
-        //   ),
-        // ),
-        // Text(
-        //   "Click here to Capture",
-        //   style: TextStyle(
-        //     fontSize: 14,
-        //     color: primaryWhite.withOpacity(0.6),
-        //   ),
-        // ),
+        if (_imageBytes != null)
+          CircleAvatar(
+            radius: 0.15.sh,
+            backgroundColor: const Color(0xffD9D9D9),
+            backgroundImage: MemoryImage(
+              _imageBytes!,
+            ),
+          )
+        else
+          CircleAvatar(
+            radius: 100,
+            backgroundColor: const Color(0xffD9D9D9),
+            child: const Icon(
+              Icons.camera_alt,
+              size: 60,
+              color: Color(0xff2E2E2E),
+            ),
+          ),
       ],
     );
   }

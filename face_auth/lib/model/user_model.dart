@@ -36,6 +36,11 @@ class UserModel {
       'mPin': mPin,
     };
   }
+
+static UserModel? fromMap(Map<String, dynamic> data) {
+    return UserModel.fromJson(data);
+  }
+  
 }
 
 class FaceFeatures {
